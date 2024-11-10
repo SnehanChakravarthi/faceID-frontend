@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
 import { z } from 'zod';
-import { formSchema } from '@/app/enrollment/page';
+import { formSchema } from '@/lib/schema';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 
