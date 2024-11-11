@@ -110,8 +110,8 @@ const AuthenticationPage = () => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-start pt-20 bg-neutral-50 min-h-screen py-10 px-4">
-      <div className="flex flex-col items-start max-w-lg w-full gap-8">
+    <div className="h-full w-full flex flex-col items-center justify-start pt-10 md:pt-20 bg-neutral-50 min-h-screen md:py-10 py-4 px-4">
+      <div className="flex flex-col items-start max-w-lg w-full md:gap-8 gap-4">
         <h1 className="text-3xl md:text-5xl font-semibold text-neutral-900 tracking-tight">
           Face ID Authentication
           <span className="block text-base md:text-base font-normal text-neutral-500">

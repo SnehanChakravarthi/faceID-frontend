@@ -42,6 +42,13 @@ const CaptureImageUI = ({
       setIsCameraInitializing(true);
 
       try {
+        if (
+          !navigator.mediaDevices ||
+          !navigator.mediaDevices.enumerateDevices
+        ) {
+          throw new Error('Camera API not supported');
+        }
+
         const devices = await navigator.mediaDevices.enumerateDevices();
         const videoDevices = devices.filter(
           (device) => device.kind === 'videoinput'
@@ -55,7 +62,8 @@ const CaptureImageUI = ({
 
         await startCamera();
       } catch (error) {
-        console.error('Error accessing camera:', error);
+        console.log('Error accessing camera:', error);
+        setError('Camera API not supported or permission denied.');
       } finally {
         setIsCameraInitializing(false);
       }

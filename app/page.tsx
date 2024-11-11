@@ -2,16 +2,16 @@ import Link from 'next/link';
 
 export default function Home() {
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center bg-neutral-50 min-h-screen">
+    <div className="h-dvh w-full flex flex-col items-center justify-center bg-neutral-50 max-h-dvh">
       <div className="max-w-2xl w-full text-center space-y-12 p-12">
-        <h1 className="text-5xl font-semibold text-neutral-900 tracking-tight">
+        <h1 className=" text-4xl md:text-5xl font-semibold text-neutral-900 tracking-tight">
           Facial Recognition
-          <span className="block text-2xl font-normal mt-2 text-neutral-500">
+          <span className="block text-2xl font-normal md:mt-2 text-neutral-500">
             Seamless. Secure. Simple.
           </span>
         </h1>
 
-        <p className="text-xl text-neutral-500 leading-relaxed max-w-xl mx-auto">
+        <p className="text-xl text-neutral-500 md:leading-normal leading-snug max-w-xl mx-auto ">
           Experience the next generation of identity verification with our
           state‑of‑the‑art facial recognition system.
         </p>

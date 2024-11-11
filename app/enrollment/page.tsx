@@ -102,11 +102,11 @@ export default function EnrollmentPage() {
   }
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-center bg-neutral-50 min-h-screen py-10 px-4">
-      <div className="flex flex-col items-start max-w-lg w-full gap-8">
-        <h1 className="text-5xl font-semibold text-neutral-900 tracking-tight">
+    <div className="h-full w-full flex flex-col items-center justify-center bg-neutral-50 min-h-dvh  md:py-10 py-4 px-4">
+      <div className="flex flex-col items-start max-w-lg w-full md:gap-8 gap-4">
+        <h1 className="md:text-5xl text-4xl font-semibold text-neutral-900 tracking-tight">
           Face ID Enrollment
-          <span className="block text-xl font-normal text-neutral-500">
+          <span className="block md:text-xl text-lg font-normal text-neutral-500">
             Quick and secure registration
           </span>
         </h1>

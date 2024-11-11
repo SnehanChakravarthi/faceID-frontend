@@ -222,7 +222,7 @@ const EnterDataUI = ({
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-3 animate-pulse">
-                  <div className="animate-spin rounded-full h-6 w-6 border-y-2 border-white" />
+                  <div className="animate-spin rounded-full h-6 w-6 border-y-2 border-black" />
                   Enrolling
                 </div>
               ) : (
