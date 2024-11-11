@@ -9,12 +9,13 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { formSchema } from '@/lib/schema';
+import { useRouter } from 'next/navigation';
 
 export default function EnrollmentPage() {
   const [capturedFrames, setCapturedFrames] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -87,7 +88,7 @@ export default function EnrollmentPage() {
       }
 
       console.log('Enrollment successful:', result);
-      setSuccess(true);
+      router.push('/enrollment/success');
     } catch (error) {
       console.log('Enrollment error:', error);
       setError(
