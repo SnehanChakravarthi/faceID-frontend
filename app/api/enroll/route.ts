@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
+import axios from 'axios';
 
-const AWS_BACKEND_URL = process.env.AWS_BACKEND_URL; // Add this to your .env file
+const AWS_BACKEND_URL =
+  process.env.AWS_BACKEND_URL || 'http://34.229.123.10:5000/';
+// const AWS_BACKEND_URL = 'http://34.229.123.10:5000/';
 
 export async function POST(request: Request) {
   try {
@@ -8,30 +11,42 @@ export async function POST(request: Request) {
 
     console.log(formData);
 
-    // const response = await fetch(`${AWS_BACKEND_URL}/enroll`, {
-    //   method: 'POST',
-    //   body: formData,
-    //   headers: {
-    //     // Add any necessary authentication headers here
-    //     Authorization: `Bearer ${process.env.AWS_API_KEY}`,
-    //   },
-    // });
+    if (!AWS_BACKEND_URL) {
+      throw new Error('AWS_BACKEND_URL is not defined');
+    }
 
-    // const data = await response.json();
+    const response = await axios.post(
+      `${AWS_BACKEND_URL}/api/v1/enroll`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
 
-    // if (!response.ok) {
-    //   return NextResponse.json(
-    //     { error: data.message || 'Failed to enroll' },
-    //     { status: response.status }
-    //   );
-    // }
+    const data = response.data;
+    console.log(data);
 
-    return NextResponse.json({ message: 'Enrolled' });
+    if (response.status !== 200) {
+      console.error('Enrollment failed:', data);
+      return NextResponse.json(
+        { error: data.error || 'Failed to enroll' }, // Use data.error to capture the specific error message
+        { status: response.status }
+      );
+    }
+
+    return NextResponse.json({ message: 'success' }); // Return a JSON object for consistency
   } catch (error) {
     console.error('Enrollment error:', error);
+
+    // Type assertion to specify the error type
+    const errorMessage =
+      (error as any).response?.data?.error || 'Internal server error';
+
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      { error: errorMessage },
+      { status: (error as any).response?.status || 500 }
     );
   }
 }

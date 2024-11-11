@@ -34,34 +34,32 @@ export default function EnrollmentPage() {
     setError(null); // Reset error state
 
     try {
-      // Process images in chunks to prevent memory issues
-      const CHUNK_SIZE = 3;
-      const imageChunks = [];
-
-      for (let i = 0; i < capturedFrames.length; i += CHUNK_SIZE) {
-        const chunk = capturedFrames.slice(i, i + CHUNK_SIZE);
-        const processedChunk = await Promise.all(
-          chunk.map(async (dataUrl, index) => {
-            // Optimize image before sending
-            const compressedBlob = await compressImage(dataUrl);
-            return new File([compressedBlob], `frame_${i + index}.jpg`, {
-              type: 'image/jpeg',
-            });
-          })
-        );
-        imageChunks.push(...processedChunk);
-      }
-
       const formDataToSend = new FormData();
       // Add all form fields in one go
       Object.entries(values).forEach(([key, value]) => {
-        formDataToSend.append(key, value.toString());
+        if (key === 'age' && value === 0) {
+          formDataToSend.append(key, '');
+        } else {
+          formDataToSend.append(key, value.toString());
+        }
       });
 
-      // Add processed images
-      imageChunks.forEach((file) => {
-        formDataToSend.append('images', file);
-      });
+      // Process and add only the last image
+      if (capturedFrames.length > 0) {
+        const lastImageUrl = capturedFrames[capturedFrames.length - 1];
+        const compressedBlob = await compressImage(lastImageUrl);
+        const lastImageFile = new File([compressedBlob], 'user_image.jpg', {
+          type: 'image/jpeg',
+        });
+        formDataToSend.append('image', lastImageFile);
+      }
+
+      // Debugging: Log the FormData content
+      // for (let pair of formDataToSend.entries()) {
+      //   console.log(pair[0] + ', ' + pair[1]);
+      // }
+
+      const startTime = performance.now();
 
       const response = await fetch('/api/enroll', {
         method: 'POST',
@@ -70,14 +68,15 @@ export default function EnrollmentPage() {
           Accept: 'application/json',
         },
         // Add timeout and credentials
-        signal: AbortSignal.timeout(30000), // 30 second timeout
+        signal: AbortSignal.timeout(200000), // 200 second timeout
       });
+
+      const endTime = performance.now(); // Stop the timer
+      console.log(`Request took ${endTime - startTime} milliseconds.`); // Log the time taken
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(
-          errorData?.message || `Server error: ${response.status}`
-        );
+        throw new Error(errorData?.error || `Server error: ${response.status}`);
       }
 
       const result = await response.json();
