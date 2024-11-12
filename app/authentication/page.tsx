@@ -40,9 +40,10 @@ const AuthenticationPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [requestTime, setRequestTime] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [authResult, setAuthResult] = useState<AuthenticationMatch | null>(
+  const [authResult, setAuthResult] = useState<AuthenticationResponse | null>(
     null
   );
+  const [match, setMatch] = useState<AuthenticationMatch | null>(null);
 
   useEffect(() => {
     if (capturedFrames.length > 0) {
@@ -53,6 +54,7 @@ const AuthenticationPage = () => {
   async function handleAuthentication() {
     setIsLoading(true);
     setError('');
+    setAuthResult(null);
     try {
       const startTime = performance.now();
 
@@ -80,18 +82,19 @@ const AuthenticationPage = () => {
 
       const result: AuthenticationResponse = await response.json();
 
-      if (!response.ok) {
-        throw new Error(
-          result.error || `Authenticatssion failed: ${response.status}`
-        );
-      }
+      // if (!response.ok) {
+      //   throw new Error(
+      //     result.error || `Authenticatssion failed: ${response.status}`
+      //   );
+      // }
 
       const endTime = performance.now(); // Stop the timer
       setRequestTime(endTime - startTime);
 
       if (result.success && result.matches?.[0]) {
         // Use the first match from the matches array
-        setAuthResult(result.matches[0]);
+        setAuthResult(result);
+        setMatch(result.matches?.[0]);
       } else {
         setError(result.message || 'No match found');
       }
@@ -114,7 +117,7 @@ const AuthenticationPage = () => {
       <div className="flex flex-col items-start max-w-lg w-full md:gap-8 gap-4">
         <h1 className="text-3xl md:text-5xl font-semibold text-neutral-900 tracking-tight">
           Face ID Authentication
-          <span className="block text-base md:text-base font-normal text-neutral-500">
+          <span className="block md:text-xl text-lg font-normal text-neutral-500">
             Quick and secure authentication
           </span>
         </h1>
@@ -123,6 +126,8 @@ const AuthenticationPage = () => {
           isLoading={isLoading}
           capturedFrames={capturedFrames}
           isAuthentication={true}
+          error={error}
+          success={authResult?.success || null}
         />
       </div>
 
@@ -151,14 +156,14 @@ const AuthenticationPage = () => {
         </div>
       )}
 
-      {authResult && (
-        <div className="mt-8 p-4 relative md:p-8 bg-gradient-to-br from-neutral-900 from-50% to-sky-900 rounded-3xl shadow-2xl max-w-lg w-full mx-auto">
+      {authResult && authResult.success && match && (
+        <div className="mt-8 p-4 relative md:p-8 bg-gradient-to-br from-neutral-900 from-50% to-green-900 rounded-3xl shadow-2xl max-w-lg w-full mx-auto">
           <div className=" text-neutral-400 flex flex-col md:flex-row items-start md:items-end justify-between w-full mb-6 gap-4">
-            <h2 className="text-2xl font-medium  text-white tracking-tight">
+            <h2 className="text-2xl font-medium text-white tracking-tight">
               Authentication Successful
             </h2>
-            <div className="bg-blue-500 text-white px-4 py-1.5 rounded-full text-sm w-fit ">
-              {(authResult.score * 100).toFixed(2)}% Match
+            <div className="bg-green-500 text-black px-4 py-1.5 rounded-full text-sm w-fit shadow-lg shadow-green-500/20">
+              {(match.score * 100).toFixed(2)}% Match
             </div>
           </div>
 
@@ -166,37 +171,37 @@ const AuthenticationPage = () => {
             <div className="flex flex-col">
               <p className="text-sm">Name</p>
               <p className="text-white">
-                {authResult.metadata.firstName} {authResult.metadata.lastName}
+                {match.metadata.firstName} {match.metadata.lastName}
               </p>
             </div>
-            {authResult.metadata.id && (
+            {match.metadata.id && (
               <div className="flex flex-col">
                 <p className="text-sm">ID</p>
-                <p className="text-white">{authResult.metadata.id}</p>
+                <p className="text-white">{match.metadata.id}</p>
               </div>
             )}
-            {authResult.metadata.email && (
+            {match.metadata.email && (
               <div className="flex flex-col">
                 <p className="text-sm">Email</p>
-                <p className="text-white">{authResult.metadata.email}</p>
+                <p className="text-white">{match.metadata.email}</p>
               </div>
             )}
-            {authResult.metadata.phone && (
+            {match.metadata.phone && (
               <div className="flex flex-col">
                 <p className="text-sm">Phone</p>
-                <p className="text-white">{authResult.metadata.phone}</p>
+                <p className="text-white">{match.metadata.phone}</p>
               </div>
             )}
-            {authResult.metadata.age && (
+            {match.metadata.age && (
               <div className="flex flex-col">
                 <p className="text-sm">Age</p>
-                <p className="text-white">{authResult.metadata.age}</p>
+                <p className="text-white">{match.metadata.age}</p>
               </div>
             )}
-            {authResult.metadata.gender && (
+            {match.metadata.gender && (
               <div className="flex flex-col">
                 <p className="text-sm">Gender</p>
-                <p className="text-white">{authResult.metadata.gender}</p>
+                <p className="text-white">{match.metadata.gender}</p>
               </div>
             )}
           </div>
@@ -207,6 +212,36 @@ const AuthenticationPage = () => {
           </div>
         </div>
       )}
+
+      <div className="flex flex-row gap-2 max-w-md mx-auto mt-20 text-neutral-500 absolute bottom-8 z-10">
+        {/* <div
+          onClick={handleRetry}
+          className="underline hover:text-green-500 transition-all duration-200 cursor-pointer"
+        >
+          Try again
+        </div> */}
+        Don&apos;t have a Face ID?
+        <Link
+          className="underline hover:text-green-500 transition-all duration-200 flex flex-row gap-2 items-center text-neutral-800"
+          href="/enrollment"
+        >
+          Get Started{' '}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
 
       {/* {error && <ErrorAlert error={error} />} */}
     </div>

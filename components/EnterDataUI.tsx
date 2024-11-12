@@ -47,30 +47,38 @@ const EnterDataUI = ({
       <div className="flex flex-row items-center w-full mx-auto gap-3">
         <div
           className={cn(
-            'w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-sm font-medium transition-colors duration-200 bg-neutral-300 text-neutral-500',
+            'w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-sm font-medium transition-all duration-500 bg-neutral-300 text-neutral-500',
             requiredFields &&
-              'ring-2 ring-offset-2 ring-green-500 text-white bg-green-500'
+              'ring-2 ring-offset-2 ring-green-500  bg-green-500'
           )}
         >
-          {requiredFields ? (
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M20 6 9 17l-5-5" />
-            </svg>
-          ) : (
-            '2'
-          )}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={cn(
+              'opacity-0 transition-all duration-500',
+              requiredFields && 'opacity-100'
+            )}
+          >
+            <path d="M20 6 9 17l-5-5" />
+          </svg>
+          <div
+            className={cn(
+              'opacity-100 absolute transition-all duration-500',
+              requiredFields && 'opacity-0'
+            )}
+          >
+            2
+          </div>
         </div>
-        <span className="text-sm font-medium text-neutral-500">
+        <span className="text-sm font-medium text-neutral-500 ">
           {requiredFields
             ? 'All set. Feel free to add more details.'
             : 'Enter both your first and last name to continue'}
