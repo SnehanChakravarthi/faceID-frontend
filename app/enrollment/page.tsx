@@ -183,7 +183,7 @@ export default function EnrollmentPage() {
 
         {error && <ErrorAlert error={error} />}
       </div>
-      <div className="flex flex-row gap-8  absolute bottom-8 z-10">
+      <div className="flex flex-row gap-8 mt-8">
         {success && (
           <div
             onClick={handleRetry}

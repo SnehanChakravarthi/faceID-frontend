@@ -113,7 +113,7 @@ const AuthenticationPage = () => {
   }
 
   return (
-    <div className="h-full w-full flex flex-col items-center justify-start pt-10 md:pt-20 bg-neutral-50 min-h-screen md:py-10 py-4 px-4">
+    <div className="h-full w-full flex flex-col items-center justify-between pt-10 md:pt-20 bg-neutral-50 min-h-screen md:py-10 py-4 px-4 ">
       <div className="flex flex-col items-start max-w-lg w-full md:gap-8 gap-4">
         <h1 className="text-3xl md:text-5xl font-semibold text-neutral-900 tracking-tight">
           Face ID Authentication
@@ -213,7 +213,7 @@ const AuthenticationPage = () => {
         </div>
       )}
 
-      <div className="flex flex-row gap-2 max-w-md mx-auto mt-20 text-neutral-500 absolute bottom-8 z-10">
+      <div className="flex flex-row gap-2 max-w-md mx-auto mt-20 text-neutral-500 self-end">
         {/* <div
           onClick={handleRetry}
           className="underline hover:text-green-500 transition-all duration-200 cursor-pointer"
