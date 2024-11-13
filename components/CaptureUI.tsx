@@ -176,10 +176,24 @@ const CaptureImageUI = ({
 
   const handleRetake = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    await startCamera();
-    setCapturedFrames([]);
-  };
 
+    try {
+      // Stop existing streams
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+
+      // Restart camera
+      await startCamera();
+
+      // Clear captured frames
+      setCapturedFrames([]);
+    } catch (error) {
+      console.error('Error restarting camera:', error);
+      setCameraError('Failed to restart the camera. Please try again.');
+    }
+  };
   return (
     <div className="flex flex-col justify-center w-full mx-auto gap-4">
       <div
@@ -310,7 +324,7 @@ const CaptureImageUI = ({
             />
             {/* Device Selector */}
             {devices.length > 1 && (
-              <div className="absolute top-2 right-2 z-10">
+              <div className="absolute top-2 right-2 z-50">
                 <Select
                   value={selectedDevice}
                   onValueChange={(value) => setSelectedDevice(value)}
@@ -330,7 +344,7 @@ const CaptureImageUI = ({
             )}
             {/* Guidelines */}
             {isCameraReady && !success && (
-              <div className="absolute group-hover:opacity-100 opacity-0 transition-all duration-300 inset-0 w-full h-full flex items-center justify-center">
+              <div className="absolute group-hover:opacity-100  opacity-0 transition-all duration-300 inset-0 w-full h-full flex items-center justify-center">
                 {/* Outer dark overlay */}
                 <div className="absolute inset-0 bg-black/20">
                   {/* Transparent circle cutout */}

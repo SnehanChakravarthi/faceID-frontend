@@ -1,6 +1,31 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
+interface Metadata {
+  firstName: string;
+  lastName: string;
+  age: string;
+  gender: string;
+  email: string;
+  phone: string;
+  id: string;
+  timestamp: number;
+  embedding_number?: number;
+}
+
+interface SparseValues {
+  indices: any[];
+  values: any[];
+}
+
+interface AuthenticationMatch {
+  id: string;
+  score: number;
+  metadata: Metadata;
+  sparse_values: SparseValues;
+  values: any[];
+}
+
 const AWS_BACKEND_URL =
   process.env.AWS_BACKEND_URL || 'http://3.234.226.80:5000/';
 // const AWS_BACKEND_URL = 'http://34.229.123.10:5000/';
@@ -26,43 +51,49 @@ export async function POST(request: Request) {
     );
 
     const data = response.data;
-    console.dir(data, { depth: 3 });
+    console.dir(data, { depth: 4 });
 
     // If the response is successful
     if (data.success) {
-      const firstMatch = data.data.matches?.[0];
-      const similarityScore = firstMatch?.score || 0;
+      const matches = data.data.matches || [];
+      const bestMatch = matches.reduce(
+        (prev: AuthenticationMatch, current: AuthenticationMatch) =>
+          prev.score > current.score ? prev : current,
+        { score: 0 } as AuthenticationMatch
+      );
 
-      // Check if similarity score meets the threshold (90%)
-      if (similarityScore >= 0.7) {
+      // Check if the best match similarity score meets the threshold (90%)
+      if (bestMatch.score >= 0.7) {
         return NextResponse.json(
           {
             success: true,
             message: data.message,
-            matches: data.data.matches,
-            user: firstMatch
-              ? {
-                  firstName: firstMatch.metadata.firstName,
-                  lastName: firstMatch.metadata.lastName,
-                  similarityScore: firstMatch.score,
-                  ...firstMatch.metadata,
-                }
-              : null,
+            user: {
+              firstName: bestMatch.metadata.firstName,
+              lastName: bestMatch.metadata.lastName,
+              score: bestMatch.score,
+              ...bestMatch.metadata,
+            },
+            isReal: data.data.is_real,
+            antispoofScore: parseFloat(data.data.antispoof_score.toFixed(2)),
+            confidence: data.data.confidence,
           },
           { status: 200 }
         );
       }
 
-      // If similarity score is below threshold, return as authentication failure
+      // If no match meets the threshold, return as authentication failure
       return NextResponse.json(
         {
           success: false,
           message: 'No match found',
-          similarityScore: similarityScore,
+          similarityScore: bestMatch.score,
         },
         { status: 401 }
       );
     }
+
+    // If similarity score is below threshold, return as authentication failure
   } catch (error) {
     console.error('Authentication error:', error);
 

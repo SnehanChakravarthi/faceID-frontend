@@ -35,8 +35,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased  min-h-dvh w-screen h-full`}
       >
-        <Link className="fixed top-4 left-4 z-10" href="/">
-          <Image src="/logo.png" alt="Face ID" width={100} height={100} />
+        <Link className="fixed top-4 left-4 z-10 " href="/">
+          <Image src="/logo.png" alt="Face ID" width={128} height={32} />
         </Link>
         {children}
       </body>

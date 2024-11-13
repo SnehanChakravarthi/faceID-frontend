@@ -12,8 +12,8 @@ export async function compressImage(dataUrl: string): Promise<Blob> {
   await new Promise((resolve) => (img.onload = resolve));
 
   const canvas = document.createElement('canvas');
-  const MAX_WIDTH = 800;
-  const MAX_HEIGHT = 800;
+  const MAX_WIDTH = 1024; // Adjusted max width
+  const MAX_HEIGHT = 1024; // Adjusted max height
 
   let { width, height } = img;
 
@@ -39,7 +39,7 @@ export async function compressImage(dataUrl: string): Promise<Blob> {
     canvas.toBlob(
       (blob) => resolve(blob!),
       'image/jpeg',
-      0.85 // compression quality
+      0.95 // Adjusted compression quality
     );
   });
 }

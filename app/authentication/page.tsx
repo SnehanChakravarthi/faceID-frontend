@@ -3,35 +3,28 @@
 import CaptureImageUI from '@/components/CaptureUI';
 import ErrorAlert from '@/components/errorAlert';
 import React, { useState, useEffect } from 'react';
-import { compressImage } from '@/lib/utils';
+import { cn, compressImage } from '@/lib/utils';
 import Link from 'next/link';
 
-interface AuthenticationMatch {
+interface User {
+  firstName: string;
+  lastName: string;
+  age: string;
+  gender: string;
+  email: string;
+  phone: string;
   id: string;
-  score: number; // Changed from similarityScore
-  metadata: {
-    firstName: string; // Moved to metadata
-    lastName: string; // Moved to metadata
-    age: string;
-    gender: string;
-    email: string;
-    phone: string;
-    embedding_number: number;
-    id: string;
-    timestamp: number;
-  };
-  sparse_values: {
-    indices: any[];
-    values: any[];
-  };
-  values: any[];
+  score: number;
+  timestamp: number;
 }
 
 interface AuthenticationResponse {
   success: boolean;
   message: string;
-  matches?: AuthenticationMatch[];
-  user?: AuthenticationMatch;
+  user?: User;
+  isReal?: boolean;
+  antispoofScore?: number;
+  confidence?: number;
   error?: string;
 }
 
@@ -43,7 +36,6 @@ const AuthenticationPage = () => {
   const [authResult, setAuthResult] = useState<AuthenticationResponse | null>(
     null
   );
-  const [match, setMatch] = useState<AuthenticationMatch | null>(null);
 
   useEffect(() => {
     if (capturedFrames.length > 0) {
@@ -82,6 +74,8 @@ const AuthenticationPage = () => {
 
       const result: AuthenticationResponse = await response.json();
 
+      console.dir(result, { depth: 4 });
+
       // if (!response.ok) {
       //   throw new Error(
       //     result.error || `Authenticatssion failed: ${response.status}`
@@ -91,11 +85,31 @@ const AuthenticationPage = () => {
       const endTime = performance.now(); // Stop the timer
       setRequestTime(endTime - startTime);
 
-      if (result.success && result.matches?.[0]) {
-        // Use the first match from the matches array
+      if (result.success && result.user) {
+        console.log('match', result);
         setAuthResult(result);
-        setMatch(result.matches?.[0]);
+        // setMatch({
+        //   id: result.user.id,
+        //   score: result.user.score, // Adjusted to match response
+        //   metadata: {
+        //     firstName: result.user.metadata.firstName,
+        //     lastName: result.user.metadata.lastName,
+        //     age: result.user.metadata.age,
+        //     gender: result.user.metadata.gender,
+        //     email: result.user.metadata.email,
+        //     phone: result.user.metadata.phone,
+        //     id: result.user.metadata.id,
+        //     timestamp: result.user.metadata.timestamp,
+        //     embedding_number: result.user.metadata.embedding_number, // Added this field
+        //   },
+        //   sparse_values: {
+        //     indices: [],
+        //     values: [],
+        //   },
+        //   values: [],
+        // });
       } else {
+        console.log('no match', result);
         setError(result.message || 'No match found');
       }
     } catch (err) {
@@ -138,6 +152,36 @@ const AuthenticationPage = () => {
         </div>
       )}
 
+      {authResult && (
+        <div
+          className={cn(
+            'mt-8 p-4 md:p-8 relative  rounded-3xl shadow-2xl max-w-lg w-full mx-auto',
+            authResult.isReal
+              ? 'bg-gradient-to-br from-neutral-900 from-50% to-green-900'
+              : 'bg-gradient-to-br from-neutral-900 from-50% to-red-900'
+          )}
+        >
+          <div className="text-neutral-400 flex flex-col items-start justify-between w-full gap-4">
+            <h2 className="text-2xl font-medium text-white tracking-tight">
+              Live Detection
+            </h2>
+            {authResult.isReal !== undefined && (
+              <p className="text-white">
+                Is Real: {authResult.isReal ? 'Yes' : 'No'}
+              </p>
+            )}
+            {authResult.antispoofScore !== undefined && (
+              <p className="text-white">
+                Antispoof Score: {authResult.antispoofScore}
+              </p>
+            )}
+            {/* {authResult.confidence !== undefined && (
+              <p className="text-white">Confidence: {authResult.confidence}</p>
+            )} */}
+          </div>
+        </div>
+      )}
+
       {error && (
         <div className="mt-8 p-4 md:p-8 relative  bg-gradient-to-br from-neutral-900 from-50% to-red-900 rounded-3xl shadow-2xl max-w-lg w-full mx-auto">
           <div className=" text-neutral-400 flex flex-col items-start justify-between w-full gap-4">
@@ -156,53 +200,57 @@ const AuthenticationPage = () => {
         </div>
       )}
 
-      {authResult && authResult.success && match && (
+      {authResult && authResult.success && authResult.user && (
         <div className="mt-8 p-4 relative md:p-8 bg-gradient-to-br from-neutral-900 from-50% to-green-900 rounded-3xl shadow-2xl max-w-lg w-full mx-auto">
           <div className=" text-neutral-400 flex flex-col md:flex-row items-start md:items-end justify-between w-full mb-6 gap-4">
             <h2 className="text-2xl font-medium text-white tracking-tight">
               Authentication Successful
             </h2>
             <div className="bg-green-500 text-black px-4 py-1.5 rounded-full text-sm w-fit shadow-lg shadow-green-500/20">
-              {(match.score * 100).toFixed(2)}% Match
+              {(authResult.user.score * 100).toFixed(2)}% Match
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-6 w-full text-neutral-400 mt-6">
-            <div className="flex flex-col">
-              <p className="text-sm">Name</p>
-              <p className="text-white">
-                {match.metadata.firstName} {match.metadata.lastName}
-              </p>
-            </div>
-            {match.metadata.id && (
-              <div className="flex flex-col">
-                <p className="text-sm">ID</p>
-                <p className="text-white">{match.metadata.id}</p>
-              </div>
-            )}
-            {match.metadata.email && (
-              <div className="flex flex-col">
-                <p className="text-sm">Email</p>
-                <p className="text-white">{match.metadata.email}</p>
-              </div>
-            )}
-            {match.metadata.phone && (
-              <div className="flex flex-col">
-                <p className="text-sm">Phone</p>
-                <p className="text-white">{match.metadata.phone}</p>
-              </div>
-            )}
-            {match.metadata.age && (
-              <div className="flex flex-col">
-                <p className="text-sm">Age</p>
-                <p className="text-white">{match.metadata.age}</p>
-              </div>
-            )}
-            {match.metadata.gender && (
-              <div className="flex flex-col">
-                <p className="text-sm">Gender</p>
-                <p className="text-white">{match.metadata.gender}</p>
-              </div>
+            {authResult.user && (
+              <>
+                <div className="flex flex-col">
+                  <p className="text-sm">Name</p>
+                  <p className="text-white">
+                    {authResult.user.firstName} {authResult.user.lastName}
+                  </p>
+                </div>
+                {authResult.user.id && (
+                  <div className="flex flex-col">
+                    <p className="text-sm">ID</p>
+                    <p className="text-white">{authResult.user.id}</p>
+                  </div>
+                )}
+                {authResult.user.email && (
+                  <div className="flex flex-col">
+                    <p className="text-sm">Email</p>
+                    <p className="text-white">{authResult.user.email}</p>
+                  </div>
+                )}
+                {authResult.user.phone && (
+                  <div className="flex flex-col">
+                    <p className="text-sm">Phone</p>
+                    <p className="text-white">{authResult.user.phone}</p>
+                  </div>
+                )}
+                {authResult.user.age && (
+                  <div className="flex flex-col">
+                    <p className="text-sm">Age</p>
+                    <p className="text-white">{authResult.user.age}</p>
+                  </div>
+                )}
+                {authResult.user.gender && (
+                  <div className="flex flex-col">
+                    <p className="text-sm">Gender</p>
+                    <p className="text-white">{authResult.user.gender}</p>
+                  </div>
+                )}
+              </>
             )}
           </div>
           <div className="absolute bottom-4 right-4 z-10" onClick={handleRetry}>
