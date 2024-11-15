@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
 import axios from 'axios';
 
-const AWS_BACKEND_URL =
-  process.env.AWS_BACKEND_URL || 'http://3.234.226.80:5000/';
-// const AWS_BACKEND_URL = 'http://34.229.123.10:5000/';
+/* const AWS_BACKEND_URL =
+  process.env.AWS_BACKEND_URL || 'http://flask_app:5000/';
+  process.env.AWS_BACKEND_URL || 'http://3.234.226.80:5000/'; */
+  
+const AWS_BACKEND_URL = 'http://flask_app:5000/'; //pointing to the backend service created in docker-compose.yaml
 
 export async function POST(request: Request) {
   try {
