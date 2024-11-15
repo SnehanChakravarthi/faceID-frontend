@@ -1,8 +1,8 @@
 'use client';
 
-import CaptureImageUI from '@/components/CaptureUI';
+import CaptureImageUI, { CaptureImageUIRef } from '@/components/CaptureUI';
 import ErrorAlert from '@/components/errorAlert';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { cn, compressImage } from '@/lib/utils';
 import Link from 'next/link';
 
@@ -29,6 +29,7 @@ interface AuthenticationResponse {
 }
 
 const AuthenticationPage = () => {
+  const captureImageRef = useRef<CaptureImageUIRef>(null);
   const [capturedFrames, setCapturedFrames] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [requestTime, setRequestTime] = useState<number | null>(null);
@@ -124,6 +125,7 @@ const AuthenticationPage = () => {
     setError('');
     setRequestTime(null);
     setCapturedFrames([]);
+    captureImageRef.current?.handleRetake();
   }
 
   return (
@@ -136,6 +138,7 @@ const AuthenticationPage = () => {
           </span>
         </h1>
         <CaptureImageUI
+          ref={captureImageRef}
           setCapturedFrames={setCapturedFrames}
           isLoading={isLoading}
           capturedFrames={capturedFrames}

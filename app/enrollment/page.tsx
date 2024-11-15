@@ -1,18 +1,18 @@
 'use client';
 
-import CaptureImageUI from '@/components/CaptureUI';
+import CaptureImageUI, { CaptureImageUIRef } from '@/components/CaptureUI';
 import EnterDataUI from '@/components/EnterDataUI';
 import ErrorAlert from '@/components/errorAlert';
 import { compressImage } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { formSchema } from '@/lib/schema';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function EnrollmentPage() {
+  const captureImageRef = useRef<CaptureImageUIRef>(null);
   const [capturedFrames, setCapturedFrames] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,10 +103,12 @@ export default function EnrollmentPage() {
     }
   }
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     setCapturedFrames([]);
     form.reset();
     setSuccess(null);
+    setError(null);
+    captureImageRef.current?.handleRetake();
   };
 
   return (
@@ -119,6 +121,7 @@ export default function EnrollmentPage() {
           </span>
         </h1>
         <CaptureImageUI
+          ref={captureImageRef}
           setCapturedFrames={setCapturedFrames}
           isLoading={isLoading}
           capturedFrames={capturedFrames}
