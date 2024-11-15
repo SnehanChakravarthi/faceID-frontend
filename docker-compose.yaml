@@ -1,0 +1,32 @@
+services:
+  faceid-frontend:
+    build:
+      context: /home/ubuntu/faceID-frontend # Assuming frontend files are in a relative path `./frontend`
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - AWS_BACKEND_URL=http://flask_app:5000  # Backend service URL
+    command: ["npm", "run", "dev"]
+    networks:
+      - faceid-network
+
+  flask_app:
+    build:
+      context: /home/ubuntu/face-id-v2  # Absolute path to the backend directory
+      dockerfile: Dockerfile
+    volumes:
+      - /home/ubuntu/face-id-v2:/app
+    ports:
+      - "2000:5000"
+    command: gunicorn -w 4 -b 0.0.0.0:5000 application:app
+    networks:
+      - faceid-network
+
+networks:
+  faceid-network:
+    driver: bridge
