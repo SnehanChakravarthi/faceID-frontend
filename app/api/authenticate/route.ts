@@ -54,44 +54,38 @@ export async function POST(request: Request) {
     console.dir(data, { depth: 4 });
 
     // If the response is successful
-    if (data.success) {
-      const matches = data.data.matches || [];
-      const bestMatch = matches.reduce(
-        (prev: AuthenticationMatch, current: AuthenticationMatch) =>
-          prev.score > current.score ? prev : current,
-        { score: 0 } as AuthenticationMatch
-      );
-
-      // Check if the best match similarity score meets the threshold (90%)
-      if (bestMatch.score >= 0.7) {
-        return NextResponse.json(
-          {
-            success: true,
-            message: data.message,
-            user: {
-              firstName: bestMatch.metadata.firstName,
-              lastName: bestMatch.metadata.lastName,
-              score: bestMatch.score,
-              ...bestMatch.metadata,
-            },
-            isReal: data.data.is_real,
-            antispoofScore: parseFloat(data.data.antispoof_score.toFixed(2)),
-            confidence: data.data.confidence,
-          },
-          { status: 200 }
-        );
-      }
-
-      // If no match meets the threshold, return as authentication failure
+    // If authentication is successful
+    if (data.success && data.match) {
       return NextResponse.json(
         {
-          success: false,
-          message: 'No match found',
-          similarityScore: bestMatch.score,
+          success: true,
+          message: data.message,
+          user: {
+            firstName: data.match.metadata.firstName,
+            lastName: data.match.metadata.lastName,
+            score: data.match.score,
+            ...data.match.metadata,
+          },
+          isReal: data.details.anti_spoofing.is_real,
+          antispoofScore: parseFloat(
+            data.details.anti_spoofing.antispoof_score.toFixed(2)
+          ),
+          confidence: data.details.anti_spoofing.confidence,
         },
-        { status: 401 }
+        { status: 200 }
       );
     }
+
+    // If no match meets the threshold, return as authentication failure
+    // If no match is found or authentication fails
+    return NextResponse.json(
+      {
+        success: false,
+        message: data.message || data.error?.error || 'Authentication failed',
+        similarityScore: data.details?.similarity_score || null,
+      },
+      { status: 401 }
+    );
 
     // If similarity score is below threshold, return as authentication failure
   } catch (error) {
