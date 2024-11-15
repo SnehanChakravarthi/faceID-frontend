@@ -26,9 +26,9 @@ interface AuthenticationMatch {
   values: any[];
 }
 
-const AWS_BACKEND_URL =
-  process.env.AWS_BACKEND_URL || 'http://3.234.226.80:5000/';
-// const AWS_BACKEND_URL = 'http://34.229.123.10:5000/';
+//const AWS_BACKEND_URL =
+  //process.env.AWS_BACKEND_URL || 'http://3.234.226.80:5000/';
+const AWS_BACKEND_URL = 'http://flask_app:5000/'; // pointing to backend service flask app in docker-compose.yaml
 
 export async function POST(request: Request) {
   try {
