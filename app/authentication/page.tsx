@@ -5,28 +5,7 @@ import ErrorAlert from '@/components/errorAlert';
 import React, { useState, useEffect, useRef } from 'react';
 import { cn, compressImage } from '@/lib/utils';
 import Link from 'next/link';
-
-interface User {
-  firstName: string;
-  lastName: string;
-  age: string;
-  gender: string;
-  email: string;
-  phone: string;
-  id: string;
-  score: number;
-  timestamp: number;
-}
-
-interface AuthenticationResponse {
-  success: boolean;
-  message: string;
-  user?: User;
-  isReal?: boolean;
-  antispoofScore?: number;
-  confidence?: number;
-  error?: string;
-}
+import { AuthenticateCode, AuthenticateResponse } from '@/lib/schema';
 
 const AuthenticationPage = () => {
   const captureImageRef = useRef<CaptureImageUIRef>(null);
@@ -34,7 +13,7 @@ const AuthenticationPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [requestTime, setRequestTime] = useState<number | null>(null);
   const [error, setError] = useState('');
-  const [authResult, setAuthResult] = useState<AuthenticationResponse | null>(
+  const [authResult, setAuthResult] = useState<AuthenticateResponse | null>(
     null
   );
 
@@ -43,6 +22,12 @@ const AuthenticationPage = () => {
       handleAuthentication();
     }
   }, [capturedFrames]);
+
+  useEffect(() => {
+    if (authResult && !authResult?.match) {
+      setError('No match found');
+    }
+  }, [authResult]);
 
   async function handleAuthentication() {
     setIsLoading(true);
@@ -73,46 +58,14 @@ const AuthenticationPage = () => {
         signal: AbortSignal.timeout(200000), // 200 second timeout
       });
 
-      const result: AuthenticationResponse = await response.json();
+      const result: AuthenticateResponse = await response.json();
 
       console.dir(result, { depth: 4 });
-
-      // if (!response.ok) {
-      //   throw new Error(
-      //     result.error || `Authenticatssion failed: ${response.status}`
-      //   );
-      // }
 
       const endTime = performance.now(); // Stop the timer
       setRequestTime(endTime - startTime);
 
-      if (result.success && result.user) {
-        console.log('match', result);
-        setAuthResult(result);
-        // setMatch({
-        //   id: result.user.id,
-        //   score: result.user.score, // Adjusted to match response
-        //   metadata: {
-        //     firstName: result.user.metadata.firstName,
-        //     lastName: result.user.metadata.lastName,
-        //     age: result.user.metadata.age,
-        //     gender: result.user.metadata.gender,
-        //     email: result.user.metadata.email,
-        //     phone: result.user.metadata.phone,
-        //     id: result.user.metadata.id,
-        //     timestamp: result.user.metadata.timestamp,
-        //     embedding_number: result.user.metadata.embedding_number, // Added this field
-        //   },
-        //   sparse_values: {
-        //     indices: [],
-        //     values: [],
-        //   },
-        //   values: [],
-        // });
-      } else {
-        console.log('no match', result);
-        setError(result.message || 'No match found');
-      }
+      setAuthResult(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
     } finally {
@@ -144,7 +97,7 @@ const AuthenticationPage = () => {
           capturedFrames={capturedFrames}
           isAuthentication={true}
           error={error}
-          success={authResult?.success || null}
+          success={authResult?.match ? true : false}
         />
       </div>
 
@@ -154,112 +107,194 @@ const AuthenticationPage = () => {
           <p className="mt-2">Authenticating...</p>
         </div>
       )}
-
       {authResult && (
         <div
           className={cn(
-            'mt-8 p-4 md:p-8 relative  rounded-3xl shadow-2xl max-w-lg w-full mx-auto',
-            authResult.isReal
-              ? 'bg-gradient-to-br from-neutral-900 from-50% to-green-900'
-              : 'bg-gradient-to-br from-neutral-900 from-50% to-red-900'
+            'mt-8 p-6 md:p-8 relative rounded-3xl shadow-2xl max-w-lg w-full mx-auto bg-gradient-to-br from-neutral-900 from-50% to-neutral-800',
+            authResult.code === AuthenticateCode.SUCCESS && authResult.match
+              ? 'bg-gradient-to-b from-neutral-900 from-50% to-green-950'
+              : 'bg-gradient-to-b from-neutral-900 from-50% to-red-950'
           )}
         >
-          <div className="text-neutral-400 flex flex-col items-start justify-between w-full gap-4">
-            <h2 className="text-2xl font-medium text-white tracking-tight">
-              Live Detection
-            </h2>
-            {authResult.isReal !== undefined && (
-              <p className="text-white">
-                Is Real: {authResult.isReal ? 'Yes' : 'No'}
-              </p>
-            )}
-            {authResult.antispoofScore !== undefined && (
-              <p className="text-white">
-                Antispoof Score: {authResult.antispoofScore}
-              </p>
-            )}
-            {/* {authResult.confidence !== undefined && (
-              <p className="text-white">Confidence: {authResult.confidence}</p>
-            )} */}
-          </div>
-        </div>
-      )}
-
-      {error && (
-        <div className="mt-8 p-4 md:p-8 relative  bg-gradient-to-br from-neutral-900 from-50% to-red-900 rounded-3xl shadow-2xl max-w-lg w-full mx-auto">
-          <div className=" text-neutral-400 flex flex-col items-start justify-between w-full gap-4">
-            <h2 className="text-2xl font-medium  text-white tracking-tight">
-              Authentication Failed
-            </h2>
-            <div className="bg-red-500 text-white px-4 py-1.5 rounded-full text-sm w-fit">
-              {error}
+          {/* Status Header */}
+          <div className="flex flex-col md:flex-row justify-between w-full mb-4 gap-4">
+            <div>
+              {/* <h2 className="text-2xl font-medium text-white tracking-tight">
+                {authResult.code === AuthenticateCode.SUCCESS &&
+                authResult.match
+                  ? 'Authentication Successful'
+                  : 'Authentication Failed'}
+              </h2> */}
+              <div className="flex flex-row gap-2 items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={cn(
+                    authResult.anti_spoofing?.is_real
+                      ? 'text-green-500'
+                      : 'hidden'
+                  )}
+                >
+                  <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+                  <path d="m9 12 2 2 4-4" />
+                </svg>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={cn(
+                    !authResult.anti_spoofing?.is_real
+                      ? 'text-red-500'
+                      : 'hidden'
+                  )}
+                >
+                  <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+                  <line x1="12" x2="12" y1="8" y2="12" />
+                  <line x1="12" x2="12.01" y1="16" y2="16" />
+                </svg>
+                <p className="text-white text-lg mt-1">
+                  {authResult.anti_spoofing?.is_real
+                    ? 'Genuine Presence Detected'
+                    : 'Spoofing Attempt Detected'}
+                </p>
+              </div>
             </div>
           </div>
-          <div className="absolute bottom-4 right-4 z-10" onClick={handleRetry}>
-            <p className="text-sm text-neutral-400 hover:text-white underline cursor-pointer transition-all">
-              Retry
-            </p>
-          </div>
-        </div>
-      )}
 
-      {authResult && authResult.success && authResult.user && (
-        <div className="mt-8 p-4 relative md:p-8 bg-gradient-to-br from-neutral-900 from-50% to-green-900 rounded-3xl shadow-2xl max-w-lg w-full mx-auto">
-          <div className=" text-neutral-400 flex flex-col md:flex-row items-start md:items-end justify-between w-full mb-6 gap-4">
+          {/* Security Metrics */}
+          <div className="flex flex-col md:flex-row justify-between gap-4 mb-4 pb-4 border-b border-neutral-700">
+            {authResult.anti_spoofing?.antispoof_score !== undefined && (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-sm text-neutral-400">
+                  Liveness Detection Score
+                </p>
+                <p className="text-xl text-white font-medium">
+                  {(authResult.anti_spoofing.antispoof_score * 100).toFixed(1)}
+                </p>
+              </div>
+            )}
+            {authResult.anti_spoofing?.confidence !== undefined && (
+              <div className="flex flex-col gap-1.5">
+                <p className="text-sm text-neutral-400">
+                  Liveness Detection Confidence
+                </p>
+                <p className="text-xl text-white font-medium">
+                  {(authResult.anti_spoofing.confidence * 100).toFixed(1)}%
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 w-full justify-between mb-4 pt-2">
             <h2 className="text-2xl font-medium text-white tracking-tight">
-              Authentication Successful
+              {authResult.code === AuthenticateCode.SUCCESS && authResult.match
+                ? 'Authentication Successful'
+                : 'Authentication Failed'}
             </h2>
-            <div className="bg-green-500 text-black px-4 py-1.5 rounded-full text-sm w-fit shadow-lg shadow-green-500/20">
-              {(authResult.user.score * 100).toFixed(2)}% Match
-            </div>
+
+            {/* Status Badge */}
+            {authResult.code === AuthenticateCode.SUCCESS &&
+              authResult.match && (
+                <div className="px-4 py-1.5 rounded-full hidden md:block text-md font-medium shadow-md bg-green-500/30 text-green-400 shadow-green-500/10">
+                  {(authResult.match.score * 100).toFixed(0)}% Match
+                </div>
+              )}
           </div>
 
-          <div className="grid grid-cols-2 gap-6 w-full text-neutral-400 mt-6">
-            {authResult.user && (
-              <>
-                <div className="flex flex-col">
-                  <p className="text-sm">Name</p>
+          {authResult.code !== AuthenticateCode.SUCCESS && (
+            <div className="px-4 py-1.5 rounded-xl text-md w-fit font-medium shadow-md bg-red-500/30 text-red-400 shadow-red-500/10">
+              {authResult.message}
+            </div>
+          )}
+          {/* {authResult.code === AuthenticateCode.SUCCESS && authResult.match && (
+            <div className="px-4 py-1.5 rounded-full md:hidden w-fit mb-4 text-sm font-medium shadow-md bg-green-500/30 text-green-400 shadow-green-500/10">
+              {(authResult.match.score * 100).toFixed(0)}% Match
+            </div>
+          )} */}
+          {/* User Details - Only show if authentication was successful */}
+          {authResult.match && authResult.code === AuthenticateCode.SUCCESS && (
+            <div className="flex flex-col md:grid md:grid-cols-2 gap-6 mb-6">
+              <div className="flex flex-col gap-1.5">
+                <p className="text-sm text-neutral-400">Name</p>
+                <p className="text-white">
+                  {authResult.match.metadata.firstName}{' '}
+                  {authResult.match.metadata.lastName}
+                </p>
+              </div>
+              {authResult.match.metadata.id && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-sm text-neutral-400">ID</p>
+                  <p className="text-white">{authResult.match.metadata.id}</p>
+                </div>
+              )}
+              {authResult.match.metadata.email && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-sm text-neutral-400">Email</p>
                   <p className="text-white">
-                    {authResult.user.firstName} {authResult.user.lastName}
+                    {authResult.match.metadata.email}
                   </p>
                 </div>
-                {authResult.user.id && (
-                  <div className="flex flex-col">
-                    <p className="text-sm">ID</p>
-                    <p className="text-white">{authResult.user.id}</p>
-                  </div>
-                )}
-                {authResult.user.email && (
-                  <div className="flex flex-col">
-                    <p className="text-sm">Email</p>
-                    <p className="text-white">{authResult.user.email}</p>
-                  </div>
-                )}
-                {authResult.user.phone && (
-                  <div className="flex flex-col">
-                    <p className="text-sm">Phone</p>
-                    <p className="text-white">{authResult.user.phone}</p>
-                  </div>
-                )}
-                {authResult.user.age && (
-                  <div className="flex flex-col">
-                    <p className="text-sm">Age</p>
-                    <p className="text-white">{authResult.user.age}</p>
-                  </div>
-                )}
-                {authResult.user.gender && (
-                  <div className="flex flex-col">
-                    <p className="text-sm">Gender</p>
-                    <p className="text-white">{authResult.user.gender}</p>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <div className="absolute bottom-4 right-4 z-10" onClick={handleRetry}>
-            <p className="text-sm text-neutral-400 hover:text-white underline cursor-pointer transition-all">
-              Retry
-            </p>
+              )}
+              {authResult.match.metadata.phone && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-sm text-neutral-400">Phone</p>
+                  <p className="text-white">
+                    {authResult.match.metadata.phone}
+                  </p>
+                </div>
+              )}
+              {authResult.match.metadata.age && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-sm text-neutral-400">Age</p>
+                  <p className="text-white">{authResult.match.metadata.age}</p>
+                </div>
+              )}
+              {authResult.match.metadata.gender && (
+                <div className="flex flex-col gap-1.5">
+                  <p className="text-sm text-neutral-400">Gender</p>
+                  <p className="text-white">
+                    {authResult.match.metadata.gender}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Retry Button */}
+          <div className="w-full flex justify-end mt-4">
+            <div
+              className="w-fit flex items-center gap-1 z-10 text-neutral-400 hover:text-white transition-colors duration-200  cursor-pointer"
+              onClick={handleRetry}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                <path d="M21 3v5h-5" />
+              </svg>
+              <div className="text-sm w-fit">Try Again</div>
+            </div>
           </div>
         </div>
       )}

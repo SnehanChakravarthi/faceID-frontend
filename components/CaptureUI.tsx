@@ -26,6 +26,7 @@ interface CaptureImageUIProps {
   isAuthentication?: boolean;
   error: string | null;
   success: boolean | null;
+  handleRetakeFromCapture?: () => Promise<void>;
 }
 
 const CaptureImageUI = forwardRef<CaptureImageUIRef, CaptureImageUIProps>(
@@ -37,6 +38,7 @@ const CaptureImageUI = forwardRef<CaptureImageUIRef, CaptureImageUIProps>(
       isAuthentication,
       error,
       success,
+      handleRetakeFromCapture,
     } = props;
 
     const [devices, setDevices] = useState<DeviceInfo[]>([]);
@@ -212,6 +214,7 @@ const CaptureImageUI = forwardRef<CaptureImageUIRef, CaptureImageUIProps>(
     const handleRetake = async (e: React.MouseEvent<HTMLButtonElement>) => {
       e.preventDefault();
       await handleRetakeCore();
+      handleRetakeFromCapture && (await handleRetakeFromCapture());
     };
 
     return (
@@ -219,7 +222,11 @@ const CaptureImageUI = forwardRef<CaptureImageUIRef, CaptureImageUIProps>(
         <div
           className={cn(
             'flex flex-row items-center gap-3 w-full',
-            (isAuthentication || componentSuccess) && 'hidden'
+            (isAuthentication ||
+              componentSuccess ||
+              isLoading ||
+              componentError) &&
+              'hidden'
           )}
         >
           <div

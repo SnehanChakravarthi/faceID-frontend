@@ -18,14 +18,14 @@ export default function Home() {
 
         <div className="flex flex-col gap-4 max-w-md mx-auto">
           <Link
-            className="w-full px-8 py-4 text-lg font-medium text-white bg-blue-500 rounded-full hover:bg-blue-600 transition-all duration-200 shadow-sm"
+            className="w-full px-4 py-3 text-lg font-medium text-white bg-green-500 rounded-full hover:bg-green-600 transition-all duration-200 shadow-sm"
             href="/enrollment"
           >
             Enroll Now
           </Link>
 
           <Link
-            className="w-full px-8 py-4 text-lg font-medium text-blue-500 border border-blue-500 rounded-full hover:bg-blue-500 hover:text-white transition-all duration-200"
+            className="w-full px-4 py-3 text-lg font-medium text-green-500 border border-green-500 rounded-full hover:bg-green-500 hover:text-white transition-all duration-200"
             href="/authentication"
           >
             Sign In with Face ID
