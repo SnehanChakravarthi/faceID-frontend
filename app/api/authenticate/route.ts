@@ -13,13 +13,13 @@ export async function POST(request: Request) {
     }
 
     const response = await axios.post(
-      `${AWS_BACKEND_URL}/api/v1/authenticate`,
+      `${AWS_BACKEND_URL}/api/v2/authenticate`,
       formData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 10000,
+        timeout: 200000,
         validateStatus: (status) => status < 500,
       }
     );

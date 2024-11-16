@@ -13,13 +13,13 @@ export async function POST(request: Request) {
     }
 
     const response = await axios.post(
-      `${AWS_BACKEND_URL}/api/v1/enroll`,
+      `${AWS_BACKEND_URL}/api/v2/enroll`,
       formData,
       {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        timeout: 10000,
+        timeout: 20000,
         validateStatus: (status) => status < 500,
       }
     );
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error('Authentication error:', error);
+    console.error('Enrollment error:', error);
 
     // Check if it's an Axios error
     if (axios.isAxiosError(error)) {
@@ -46,7 +46,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json(
         {
-          message: 'Authentication failed',
+          message: 'Enrollment failed',
           details: {
             errorCode,
             errorMessage,

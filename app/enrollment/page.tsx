@@ -2,18 +2,12 @@
 
 import CaptureImageUI, { CaptureImageUIRef } from '@/components/CaptureUI';
 import EnterDataUI from '@/components/EnterDataUI';
-import ErrorAlert from '@/components/errorAlert';
 import { cn, compressImage } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
-import {
-  AuthenticateCode,
-  EnrollmentCode,
-  EnrollmentResponse,
-  formSchema,
-} from '@/lib/schema';
+import { EnrollmentCode, EnrollmentResponse, formSchema } from '@/lib/schema';
 import Link from 'next/link';
 
 export default function EnrollmentPage() {
@@ -116,6 +110,7 @@ export default function EnrollmentPage() {
   };
 
   const handleRetry = async () => {
+    setSuccess(null);
     setCapturedFrames([]);
     form.reset();
     setEnrollResult(null);
@@ -160,65 +155,89 @@ export default function EnrollmentPage() {
                 )}
               >
                 {/* Status Header */}
-                <div className="flex flex-col md:flex-row justify-between w-full mb-4 gap-4">
-                  <div>
-                    {/* <h2 className="text-2xl font-medium text-white tracking-tight">
-                    {authResult.code === AuthenticateCode.SUCCESS &&
-                    authResult.match
-                      ? 'Authentication Successful'
-                      : 'Authentication Failed'}
-                  </h2> */}
-                    <div className="flex flex-row gap-2 items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={cn(
-                          enrollResult.anti_spoofing?.is_real
-                            ? 'text-green-500'
-                            : 'hidden'
-                        )}
-                      >
-                        <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
-                        <path d="m9 12 2 2 4-4" />
-                      </svg>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={cn(
-                          !enrollResult.anti_spoofing?.is_real
-                            ? 'text-red-500'
-                            : 'hidden'
-                        )}
-                      >
-                        <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
-                        <line x1="12" x2="12" y1="8" y2="12" />
-                        <line x1="12" x2="12.01" y1="16" y2="16" />
-                      </svg>
-                      <p className="text-white text-lg mt-1">
-                        {enrollResult.anti_spoofing?.is_real
-                          ? 'Genuine Presence Detected'
-                          : 'Spoofing Attempt Detected'}
-                      </p>
-                    </div>
+                {enrollResult.code === EnrollmentCode.SPOOFING_DETECTED ||
+                enrollResult.code === EnrollmentCode.SUCCESS ? (
+                  <div className="flex flex-row gap-2 items-center mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={cn(
+                        enrollResult.anti_spoofing?.is_real
+                          ? 'text-green-500'
+                          : 'hidden'
+                      )}
+                    >
+                      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={cn(
+                        !enrollResult.anti_spoofing?.is_real
+                          ? 'text-red-500'
+                          : 'hidden'
+                      )}
+                    >
+                      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+                      <line x1="12" x2="12" y1="8" y2="12" />
+                      <line x1="12" x2="12.01" y1="16" y2="16" />
+                    </svg>
+                    <p className="text-white text-lg mt-1">
+                      {enrollResult.anti_spoofing?.is_real
+                        ? 'Genuine Presence Detected'
+                        : 'Spoofing Attempt Detected'}
+                    </p>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex flex-row gap-2 items-center mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className={cn(
+                        !enrollResult.anti_spoofing?.is_real
+                          ? 'text-red-500'
+                          : 'hidden'
+                      )}
+                    >
+                      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" />
+                      <line x1="12" x2="12" y1="8" y2="12" />
+                      <line x1="12" x2="12.01" y1="16" y2="16" />
+                    </svg>
+                    <p className="text-white text-lg mt-1">
+                      {enrollResult.code === EnrollmentCode.NO_FACE_DETECTED
+                        ? 'No Face Detected'
+                        : enrollResult.code ===
+                          EnrollmentCode.MULTIPLE_FACES_DETECTED
+                        ? 'Multiple Faces Detected'
+                        : 'Unexpected Error'}
+                    </p>
+                  </div>
+                )}
 
                 {/* Security Metrics */}
-                <div className="flex flex-col md:flex-row justify-between gap-4 mb-4 pb-4 border-b border-neutral-700">
+                {/* <div className="flex flex-col md:flex-row justify-between gap-4 mb-4 pb-4 border-b border-neutral-700">
                   {enrollResult.anti_spoofing?.antispoof_score !==
                     undefined && (
                     <div className="flex flex-col gap-1.5">
@@ -245,7 +264,7 @@ export default function EnrollmentPage() {
                       </p>
                     </div>
                   )}
-                </div>
+                </div> */}
 
                 <div className="flex flex-col md:flex-row gap-4 w-full justify-between mb-4 pt-2">
                   <h2 className="text-2xl font-medium text-white tracking-tight">
